@@ -1,0 +1,72 @@
+// Sistema de Reservas de Canchas Deportivas
+// 3 entidades con CRUD: Usuario, Servicio (cancha), Reserva
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  CLIENTE
+  OPERADOR
+  ADMIN
+}
+
+enum EstadoReserva {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+}
+
+model Usuario {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  email     String    @unique
+  password  String
+  rol       Rol       @default(CLIENTE)
+  telefono  String?
+  reservas  Reserva[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("usuarios")
+}
+
+model Servicio {
+  id          Int       @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  tipo        String // futbol, voley, basquet, tenis
+  precioHora  Decimal   @db.Decimal(10, 2)
+  capacidad   Int       @default(1)
+  imagenUrl   String?
+  activo      Boolean   @default(true)
+  reservas    Reserva[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("servicios")
+}
+
+model Reserva {
+  id         Int           @id @default(autoincrement())
+  usuario    Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId  Int
+  servicio   Servicio      @relation(fields: [servicioId], references: [id], onDelete: Restrict)
+  servicioId Int
+  fecha      DateTime      @db.Date
+  horaInicio String // "18:00"
+  horaFin    String // "19:00"
+  estado     EstadoReserva @default(PENDIENTE)
+  notas      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([servicioId, fecha])
+  @@index([usuarioId])
+  @@map("reservas")
+}
