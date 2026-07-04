@@ -8,11 +8,12 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
-// CORS: permite el frontend definido en CORS_ORIGIN (coma-separado para varios)
-const origenes = (process.env.CORS_ORIGIN || "http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim());
-app.use(cors({ origin: origenes, credentials: true }));
+// CORS: si CORS_ORIGIN="*" refleja cualquier origen; si no, lista blanca (coma-separado).
+const rawOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
+const corsOrigin = rawOrigin.trim() === "*"
+  ? true // refleja el origen de la petición (permite todos)
+  : rawOrigin.split(",").map((o) => o.trim());
+app.use(cors({ origin: corsOrigin, credentials: true }));
 
 app.use(express.json());
 
